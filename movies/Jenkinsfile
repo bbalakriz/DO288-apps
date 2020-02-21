@@ -94,12 +94,7 @@ pipeline {
 
         stage('Wait for deployment in DEV env') {
             //TODO: Watch deployment until pod is in 'Running' state
-             steps {
-                sh "oc get route ${APP_NAME} -n ${DEV_PROJECT} -o jsonpath='{ .spec.host }' --loglevel=4 > routehost"
-
-                script {
-                    routeHost = readFile('routehost').trim()
-                    
+             steps {                  
                     openshift.withCluster() {
                         openshift.withProject( "${DEV_PROJECT}" ) {
                             def deployment = openshift.selector("dc", "${APP_NAME}").rollout()
@@ -107,10 +102,8 @@ pipeline {
                                 return (it.object().status.phase == "Running")
                             }
                         }
-                        echo "Deployment to DEV env is complete. Access the API endpoint at the URL http://${routeHost}/movies."
                     }
-                }
-             }
+              }
         }
 
         stage('Promote to Staging Env') {
